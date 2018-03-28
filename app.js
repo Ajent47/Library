@@ -2,7 +2,16 @@ var express = require('express');
 var app = express();
 
 var port = process.env.PORT || 5000;
-var bookRouter = require('./src/routes/bookRoutes');
+
+var nav = [{
+  Link: '/Books',
+  Text: 'Books'
+}, {
+  Link: '/Authors',
+  Text: 'Authors'
+}];
+
+var bookRouter = require('./src/routes/bookRoutes')(nav);
 
 app.use(express.static('public'));
 app.set('views', './src/views');
@@ -22,10 +31,6 @@ app.get('/', function (req, res) {
       Text: 'Authors'
     }]
   });
-});
-
-app.get('/books', function (req, res) {
-  res.send('Hello Books');
 });
 
 app.listen(port, function () {
