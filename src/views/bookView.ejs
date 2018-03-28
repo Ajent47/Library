@@ -109,7 +109,6 @@
 
 
             <!--/stories-->
-            <% for(var i =0; i< books.length; i++) {%>
             <div class="row">
               <br>
               <div class="col-md-2 col-sm-3 text-center">
@@ -118,16 +117,11 @@
                 </a>
               </div>
               <div class="col-md-10 col-sm-9">
-                <h3><%=books[i].title%></h3>
+                <h3><%=book.title%></h3>
                 <div class="row">
                   <div class="col-xs-9">
                     <h4>
-                      <span class="label label-default"><%=books[i].author%></span>
-                    </h4>
-                    <h4>
-                      <small style="font-family:courier,'new courier';" class="text-muted">
-                        <a href="<%=i%>" class="text-muted">Read More</a>
-                      </small>
+                      <span class="label label-default"><%=book.author%></span>
                     </h4>
                   </div>
                   <div class="col-xs-3"></div>
@@ -137,7 +131,6 @@
               </div>
             </div>
             <hr>
-            <%}%>
             <!--/stories-->
 
 
