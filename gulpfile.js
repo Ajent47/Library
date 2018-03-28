@@ -43,7 +43,7 @@ gulp.task('serve', ['style', 'inject'], function () {
     env: {
       'PORT': 3000
     },
-    watch: jsFiles
+    watch: [jsFiles, '*.ejs']
   };
 
   return nodemon(options)
