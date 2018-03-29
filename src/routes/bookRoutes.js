@@ -1,68 +1,42 @@
 var express = require('express');
-
 var bookRouter = express.Router();
+var mongodb = require('mongodb').MongoClient;
+var ObjectId = require('mongodb').ObjectID;
 
 var router = function (nav) {
-  var books = [{
-      'title': 'Pride and Prejudice',
-      'genre': 'Fiction',
-      'author': 'Jane Austen',
-      'read': false
-    },
-    {
-      'title': 'War and Peace',
-      'genre': 'Fiction',
-      'author': 'Leo Tolstoy',
-      'read': false
-    },
-    {
-      'title': 'Hamlet',
-      'genre': 'Fiction',
-      'author': 'William Shakespeare',
-      'read': true
-    },
-    {
-      'title': 'Moby Dick',
-      'genre': 'Fiction',
-      'author': 'Herman Melville',
-      'read': true
-    },
-    {
-      'title': 'The Great Gatsby',
-      'genre': 'Fiction',
-      'author': 'F. Scott Fitzgerald',
-      'read': true
-    },
-    {
-      'title': 'The Adventures of Huckleberry',
-      'genre': 'Fiction',
-      'author': 'Mark Twain',
-      'read': true
-    },
-    {
-      'title': 'Alice\'s Adventures in Wonderland',
-      'genre': 'Fiction',
-      'author': 'Lewis Carroll',
-      'read': false
-    }
-  ];
 
   bookRouter.route('/')
     .get(function (req, res) {
-      res.render('bookListView', {
-        title: 'Books',
-        nav: nav,
-        books: books
+      var url = 'mongodb://localhost:27017';
+      mongodb.connect(url, function (err, client) {
+        var db = client.db('libraryApp');
+        var collection = db.collection('Books');
+        collection.find({}).toArray(function (err, results) {
+          res.render('bookListView', {
+            title: 'Books',
+            nav: nav,
+            books: results
+          });
+        });
+        client.close();
       });
     });
 
   bookRouter.route('/:id')
     .get(function (req, res) {
-      var id = req.params.id;
-      res.render('bookView', {
-        title: 'Books',
-        nav: nav,
-        book: books[id]
+      var id = new ObjectId(req.params.id);
+      var url = 'mongodb://localhost:27017';
+      mongodb.connect(url, function (err, client) {
+        var db = client.db('libraryApp');
+        var collection = db.collection('Books');
+        collection.findOne({_id: id}, function (err, result) {
+          res.render('bookView', {
+            title: 'Book',
+            nav: nav,
+            book: result
+          });
+        });
+        client.close();
       });
     });
   return bookRouter;
