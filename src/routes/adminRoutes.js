@@ -6,12 +6,14 @@ var books = [{
     'title': 'Pride and Prejudice',
     'genre': 'Fiction',
     'author': 'Jane Austen',
+    'bookId': 24280,
     'read': false
   },
   {
     'title': 'War and Peace',
     'genre': 'Fiction',
     'author': 'Leo Tolstoy',
+    'bookId':656,
     'read': false
   },
   {
