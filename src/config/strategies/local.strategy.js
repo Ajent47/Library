@@ -1,38 +1,39 @@
-var passport = require('passport'),
-  LocalStrategy = require('passport-local').Strategy,
-  mongodb = require('mongodb').MongoClient;
+const passport = require('passport');
+const { Strategy } = require('passport-local');
+const { MongoClient } = require('mongodb');
+const debug = require('debug')('app:local.strategy');
 
-module.exports = function (app) {
-  passport.use(new LocalStrategy({
-      usernameField: 'userName',
-      passwordField: 'password'
-    },
-    function (username, password, done) {
-      var url = 'mongodb://localhost:27017';
-      mongodb.connect(url, function (err, client) {
-        var db = client.db('libraryApp');
-        var collection = db.collection('users');
-        collection.findOne({
-          username: username
-        }, function (err, results) {
-          if (err) {
-            done(err);
-          }
-          else if (!results) {
-            done(null, false, {
-              message: 'Unknown user: ' + username
-            });
-          }
-          else if (results.password === password) {
-            var user = results;
-            done(null, user);
-          } else {
-            done(null, false, {
-              message: 'Bad password'
-            });
-          }
+module.exports = function localStrategy() {
+  passport.use(new Strategy({
+    usernameField: 'username',
+    passwordField: 'password'
+  }, (username, password, done) => {
+    const url = 'mongodb://localhost:27017';
+    const dbName = 'libraryApp';
+    (async function mongo() {
+      let client;
+      try {
+        client = await MongoClient.connect(url);
+
+        debug('Connected correctly to server');
+
+        const db = client.db(dbName);
+        const col = db.collection('users');
+
+        const user = await col.findOne({
+          username
         });
-        client.close();
-      });
-    }));
+
+        if (user.password === password) {
+          done(null, user);
+        } else {
+          done(null, false);
+        }
+      } catch (err) {
+        debug(err.stack);
+      }
+      // Close connection
+      client.close();
+    }());
+  }));
 };

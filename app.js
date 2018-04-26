@@ -1,53 +1,50 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-var session = require('express-session');
+const express = require('express');
+const chalk = require('chalk');
+const debug = require('debug')('app');
+const morgan = require('morgan');
+const path = require('path');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
 
-var app = express();
+const app = express();
+const port = process.env.PORT || 3000;
 
-var port = process.env.PORT || 5000;
-
-var nav = [{
-  Link: '/Books',
-  Text: 'Books'
-}, {
-  Link: '/Authors',
-  Text: 'Authors'
-}];
-
-var bookRouter = require('./src/routes/bookRoutes')(nav);
-var adminRouter = require('./src/routes/adminRoutes')(nav);
-var authRouter = require('./src/routes/authRoutes')(nav);
-
-app.use(express.static('public'));
+app.use(morgan('tiny'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(session({secret: 'library'}));
+app.use(session({ secret: 'library' }));
 
-require('./src/config/passport')(app);
+require('./src/config/passport.js')(app);
 
+app.use(express.static(path.join(__dirname, '/public/')));
+app.use('/css', express.static(path.join(__dirname, '/node_modules/bootstrap/dist/css')));
+app.use('/js', express.static(path.join(__dirname, '/node_modules/bootstrap/dist/js')));
+app.use('/js', express.static(path.join(__dirname, '/node_modules/jquery/dist')));
 app.set('views', './src/views');
-
 app.set('view engine', 'ejs');
+
+const nav = [
+  { link: '/Books', title: 'Book' },
+  { link: '/Authors', title: 'Author' }
+];
+
+const bookRouter = require('./src/routes/bookRoutes')(nav);
+const adminRouter = require('./src/routes/adminRoutes')(nav);
+const authRouter = require('./src/routes/authRoutes')(nav);
 
 app.use('/Books', bookRouter);
 app.use('/Admin', adminRouter);
 app.use('/Auth', authRouter);
 
-app.get('/', function (req, res) {
+app.get('/', (req, res) => {
   res.render('index', {
-    title: 'Hello from render',
-    nav: [{
-      Link: '/Books',
-      Text: 'Books'
-    }, {
-      Link: '/Authors',
-      Text: 'Authors'
-    }]
+    title: 'Library',
+    nav
   });
 });
 
-app.listen(port, function () {
-  console.log('Running server on port ' + port); // eslint-disable-line no-console
+app.listen(port, () => {
+  debug(`listening on port ${chalk.green(port)}`);
 });

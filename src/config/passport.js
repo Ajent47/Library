@@ -1,16 +1,17 @@
-var passport = require('passport');
+const passport = require('passport');
+require('./strategies/local.strategy')();
 
-module.exports = function (app) {
+module.exports = function passportConfig(app) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  passport.serializeUser(function (user, done) {
+  // Stores user in session
+  passport.serializeUser((user, done) => {
     done(null, user);
   });
 
-  passport.deserializeUser(function (user, done) {
+  // Retrieves user from session
+  passport.deserializeUser((user, done) => {
     done(null, user);
   });
-
-  require('./strategies/local.strategy')();
 };

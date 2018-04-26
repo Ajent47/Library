@@ -1,62 +1,77 @@
 // revealing module patter
+const { MongoClient, ObjectID } = require('mongodb');
+const debug = require('debug')('app:bookController');
 
-var mongodb = require('mongodb').MongoClient;
-var ObjectId = require('mongodb').ObjectID;
-
-var bookController = function (bookService, nav) {
-
-  var middleware = function (req, res, next) {
-    //  if (!req.user) {
-    //    return res.redirect('/');
-    //  }
-    next();
+const bookController = (bookService, nav) => {
+  const middleware = (req, res, next) => {
+    if (req.user) {
+      next();
+    } else {
+      return res.redirect('/');
+    }
   };
 
-  var getIndex = function (req, res) {
-    var url = 'mongodb://localhost:27017';
-    mongodb.connect(url,
-      function (err, client) {
-        var db = client.db('libraryApp');
-        var collection = db.collection('Books');
-        collection.find({}).toArray(function (err, results) {
-          res.render('bookListView', {
-            title: 'Books',
-            nav: nav,
-            books: results
-          });
+  const getIndex = (req, res) => {
+    const url = 'mongodb://localhost:27017';
+    const dbName = 'libraryApp';
+
+    (async function mongo() {
+      let client;
+      try {
+        client = await MongoClient.connect(url);
+        debug('Connected correctly to server');
+        const db = client.db(dbName);
+        const col = await db.collection('Books');
+        const books = await col.find().toArray();
+        res.render('bookListView', {
+          nav,
+          title: 'Library',
+          books
         });
-        client.close();
-      });
+      } catch (err) {
+        debug(err.stack);
+      }
+      client.close();
+    }());
   };
 
-  var getById = function (req, res) {
-    var id = new ObjectId(req.params.id);
-    var url = 'mongodb://localhost:27017';
-    mongodb.connect(url,
-      function (err, client) {
-        var db = client.db('libraryApp');
-        var collection = db.collection('Books');
-        collection.findOne({
-          _id: id
-        }, function (err, result) {
-          bookService.getBookById(result.bookId,
-            function (err, book) {
-              result.book = book;
-              res.render('bookView', {
-                title: 'Book',
-                nav: nav,
-                book: result
-              });
-            });
+  const getById = (req, res) => {
+    const { id } = req.params;
+    const url = 'mongodb://localhost:27017';
+    const dbName = 'libraryApp';
+
+    (async function mongo() {
+      let client;
+      try {
+        client = await MongoClient.connect(url);
+        debug('Connected correctly to server');
+
+        const db = client.db(dbName);
+
+        const col = await db.collection('Books');
+        debug(id);
+        const book = await col.findOne({
+          _id: new ObjectID(id)
         });
-        client.close();
-      });
+
+        debug(book);
+        book.details = await bookService.getBookById(book.bookId);
+        res.render('bookView', {
+          nav,
+          title: 'Library',
+          book
+        });
+      } catch (err) {
+        debug(err.stack);
+      }
+      client.close();
+    }());
   };
 
   return {
-    getById: getById,
-    getIndex: getIndex,
-    middleware: middleware
+    getById,
+    getIndex,
+    middleware
   };
 };
 

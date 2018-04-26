@@ -1,66 +1,82 @@
-var express = require('express');
-var adminRouter = express.Router();
-var mongodb = require('mongodb').MongoClient;
+const express = require('express');
+const { MongoClient } = require('mongodb');
+const debug = require('debug')('app:adminRoutes');
 
-var books = [{
-    'title': 'Pride and Prejudice',
-    'genre': 'Fiction',
-    'author': 'Jane Austen',
-    'bookId': 24280,
-    'read': false
+const adminRouter = express.Router();
+const books = [
+  {
+    title: 'War and Peace',
+    genre: 'Historical Fiction',
+    author: 'Lev Nikolayevich Tolstoy',
+    bookId: 656,
+    read: false
   },
   {
-    'title': 'War and Peace',
-    'genre': 'Fiction',
-    'author': 'Leo Tolstoy',
-    'bookId':656,
-    'read': false
+    title: 'Les Misérables',
+    genre: 'Historical Fiction',
+    author: 'Victor Hugo',
+    bookId: 24280,
+    read: false
   },
   {
-    'title': 'Hamlet',
-    'genre': 'Fiction',
-    'author': 'William Shakespeare',
-    'read': true
+    title: 'The Time Machine',
+    genre: 'Science Fiction',
+    author: 'H. G. Wells',
+    read: false
   },
   {
-    'title': 'Moby Dick',
-    'genre': 'Fiction',
-    'author': 'Herman Melville',
-    'read': true
+    title: 'A Journey into the Center of the Earth',
+    genre: 'Science Fiction',
+    author: 'Jules Verne',
+    read: false
   },
   {
-    'title': 'The Great Gatsby',
-    'genre': 'Fiction',
-    'author': 'F. Scott Fitzgerald',
-    'read': true
+    title: 'The Dark World',
+    genre: 'Fantasy',
+    author: 'Henry Kuttner',
+    read: false
   },
   {
-    'title': 'The Adventures of Huckleberry',
-    'genre': 'Fiction',
-    'author': 'Mark Twain',
-    'read': true
+    title: 'The Wind in the Willows',
+    genre: 'Fantasy',
+    author: 'Kenneth Grahame',
+    read: false
   },
   {
-    'title': 'Alice\'s Adventures in Wonderland',
-    'genre': 'Fiction',
-    'author': 'Lewis Carroll',
-    'read': false
-  }
-];
+    title: 'Life On The Mississippi',
+    genre: 'History',
+    author: 'Mark Twain',
+    read: false
+  },
+  {
+    title: 'Childhood',
+    genre: 'Biography',
+    author: 'Lev Nikolayevich Tolstoy',
+    read: false
+  }];
 
-var router = function (nav) {
-
+const router = (nav) => {
   adminRouter.route('/addBooks')
-    .get(function (req, res) {
-      var url = 'mongodb://localhost:27017';
-      mongodb.connect(url, function (err, client) {
-        var db = client.db('libraryApp');
-        var collection = db.collection('Books');
-        collection.insertMany(books, function (err, results) {
-          res.send(results);
-        });
+    .get((req, res) => {
+      const url = 'mongodb://localhost:27017';
+      const dbName = 'libraryApp';
+
+      (async function mongo() {
+        let client;
+        try {
+          client = await MongoClient.connect(url);
+          debug('Connected correctly to server');
+
+          const db = client.db(dbName);
+
+          const response = await db.collection('Books').insertMany(books);
+          res.json(response);
+        } catch (err) {
+          debug(err.stack);
+        }
+
         client.close();
-      });
+      }());
     });
   return adminRouter;
 };

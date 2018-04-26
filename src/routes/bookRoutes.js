@@ -1,17 +1,18 @@
-var express = require('express');
-var bookRouter = express.Router();
+const express = require('express');
+const bookService = require('../services/goodreadsService');
+const bookController = require('../controllers/bookControllers');
 
-var router = function (nav) {
+const bookRouter = express.Router();
 
-  var bookService = require('../services/goodreadsService')();
-  var bookController = require('../controllers/bookControllers')(bookService, nav);
-  bookRouter.use(bookController.middleware);
+const router = (nav) => {
+  const { getIndex, getById, middleware } = bookController(bookService, nav);
+  bookRouter.use(middleware);
 
   bookRouter.route('/')
-    .get(bookController.getIndex);
+    .get(getIndex);
 
   bookRouter.route('/:id')
-    .get(bookController.getById);
+    .get(getById);
   return bookRouter;
 };
 module.exports = router;
